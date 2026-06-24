@@ -1,0 +1,53 @@
+{
+  "name": "hardhat-project",
+  "dependencies": {
+    "@chainlink/contracts": "^0.4.1",
+    "@uniswap/v2-core": "^1.0.1",
+    "@uniswap/v3-periphery": "^1.4.3",
+    "command-line-args": "^5.2.0"
+  },
+  "license": "BUSL-1.1",
+  "scripts": {
+    "clean": "npx hardhat clean",
+    "build": "npx hardhat compile",
+    "compile": "npx hardhat compile",
+    "check-contract-size": "hardhat size-contracts",
+    "test": "npx hardhat test",
+    "deploy-impl:goerli": "npx hardhat run scripts/deployLockImplementaionContracts.js --network goerli",
+    "deploy-impl:bsctest": "npx hardhat run scripts/deployLockImplementaionContracts.js --network bscTestnet",
+    "deploy-impl:mumbai": "npx hardhat run scripts/deployLockImplementaionContracts.js --network polygonMumbai",
+    "test-lock": "npx hardhat test test/Lock.test.js",
+    "test-dm": "npx hardhat test test/DepositManager/DepositManager.test.js",
+    "test-sm": "npx hardhat test test/SplitManager/SplitManager.test.js",
+    "test-interval": "npx hardhat test test/UnlockSchedule/IntervalUnlock.test.js",
+    "test-linear": "npx hardhat test test/UnlockSchedule/LinearUnlock.test.js"
+  },
+  "devDependencies": {
+    "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.7",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.1",
+    "@nomiclabs/hardhat-ethers": "^2.2.2",
+    "@nomiclabs/hardhat-etherscan": "^3.1.5",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@openzeppelin/contracts": "^4.8.1",
+    "@openzeppelin/contracts-upgradeable": "^4.5.0",
+    "@openzeppelin/hardhat-upgrades": "^1.14.0",
+    "@openzeppelin/test-helpers": "^0.5.13",
+    "@solidstate/contracts": "^0.0.35",
+    "@typechain/ethers-v5": "^10.2.0",
+    "@typechain/hardhat": "^6.1.5",
+    "chai": "^4.3.7",
+    "dotenv": "^16.0.0",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.12.6",
+    "hardhat-contract-sizer": "^2.5.0",
+    "hardhat-gas-reporter": "^1.0.9",
+    "keccak256": "^1.0.6",
+    "merkletreejs": "^0.2.30",
+    "solidity-coverage": "^0.8.2",
+    "typechain": "^8.1.1",
+    "web3": "^1.8.1"
+  }
+}

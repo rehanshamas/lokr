@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui" />
+        <title>Simple Lock Factory</title>
+        <script>
+            async function main() {
+                const settings = await (await fetch("./settings.json", {cache: 'no-cache'})).json();
+                const lockFactoryAbi = (await (await fetch("./abi/LockFactory.json", {cache: 'no-cache'})).json())["abi"];
+
+                Vue.component('input-eth-address', {
+                    props: ['label', 'defaultValue'],
+                    data: (instance) => ({
+                        validator: [(value) => ethers.utils.isAddress(value)],
+                        value: instance.defaultValue,
+                        lastValue:instance.defaultValue
+                    }),
+                    template: '<v-text-field :label="label" :rules="validator" :value="value" @input="updateValue"></v-text-field>',
+                    methods: {
+                        updateValue: function(newValue){this.lastValue = newValue;},
+                        getValue: function(){return this.lastValue;},
+                    }
+                });
+                Vue.component('input-eth-uint256', {
+                    props: ['label', 'defaultValue'],
+                    data: (instance) => ({
+                        validator: [(value) => (typeof value == 'undefined')?false:
+                            Number.isInteger(Number(value)) || value.match(/^0x([0-9a-fA-F]{2}){0,32}$/gm)
+                        ],
+                        value: instance.defaultValue,
+                        lastValue:instance.defaultValue
+                    }),
+                    template: '<v-text-field :label="label" :rules="validator" :value="value" @input="updateValue"></v-text-field>',
+                    methods: {
+                        updateValue: function(newValue){this.lastValue = newValue;},
+                        getValue: function(){return this.lastValue;},
+                    }
+                });
+                Vue.component('input-eth-uint32', {
+                    props: ['label', 'defaultValue'],
+                    data: (instance) => ({
+                        validator: [(value) => Number.isInteger(Number(value))],
+                        value: instance.defaultValue,
+                        lastValue:instance.defaultValue
+                    }),
+                    template: '<v-text-field :label="label" :rules="validator" :value="value" @input="updateValue"></v-text-field>',
+                    methods: {
+                        updateValue: function(newValue){this.lastValue = newValue;},
+                        getValue: function(){return this.lastValue;},
+                    }
+
+                });
+                Vue.component('input-eth-bool', {
+                    props: ['label', 'defaultValue'],
+                    data: (instance) => ({
+                        value: instance.defaultValue,
+                        lastValue:Boolean(instance.defaultValue)
+                    }),
+                    template: '<v-checkbox :label="label" :value="value" @change="updateValue"></v-checkbox>',
+                    methods: {
+                        updateValue: function(newValue){this.lastValue = newValue;},
+                        getValue: function(){return this.lastValue;},
+                    }
+                });
+                Vue.component('input-eth-address-array', {
+                    props: ['label', 'defaultValue'],
+                    data: (instance) => ({
+                        validator: [(value) => (typeof value == 'undefined')?false:
+                            value.split("\n").every((el) => ethers.utils.isAddress(el))
+                        ],
+                        value: Array.isArray(instance.defaultValue)?instance.defaultValue.join("\n"):instance.defaultValue,
+                        lastValue:instance.defaultValue,
+                    }),
+                    template: '<v-textarea :label="label" :rules="validator" :value="value" rows="5" :auto-grow="true" @input="updateValue"></v-textarea>',
+                    methods: {
+                        updateValue: function(newValue){this.lastValue = newValue;},
+                        getValue: function() {
+                            if(typeof this.lastValue == 'undefined' || this.lastValue == "") return [];
+                            return this.lastValue.split("\n").map((v)=>ethers.utils.getAddress(v));
+                        }
+                    }
+                });
+                Vue.component('input-eth-uint256-array', {
+                    props: ['label', 'defaultValue'],
+                    data: (instance) => ({
+                        validator: [(value) => (typeof value == 'undefined')?false:
+                            value.split("\n").every((el) => Number.isInteger(Number(el)) || el.match(/^0x([0-9a-fA-F]{2}){0,32}$/gm))
+                        ],
+                        value: Array.isArray(instance.defaultValue)?instance.defaultValue.join("\n"):instance.defaultValue,
+                        lastValue:instance.defaultValue,
+                    }),
+                    template: '<v-textarea :label="label" :rules="validator" :value="value" rows="5" :auto-grow="true" @input="updateValue"></v-textarea>',
+                    methods: {
+                        updateValue: function(newValue){this.lastValue = newValue;},
+                        getValue: function() {
+                            if(typeof this.lastValue == 'undefined' || this.lastValue == "") return [];
+                            return this.lastValue.split("\n");
+                        }
+                    }
+                });
+                Vue.component('input-eth-uint32-array', {
+                    props: ['label', 'defaultValue'],
+                    data: (instance) => ({
+                        validator: [(value) => (typeof value == 'undefined')?false:
+                            value.split("\n").every((el) => Number.isInteger(Number(el)))
+                        ],
+                        value: Array.isArray(instance.defaultValue)?instance.defaultValue.join("\n"):instance.defaultValue,
+                        lastValue:instance.defaultValue,
+                    }),
+                    template: '<v-textarea :label="label" :rules="validator" :value="value" rows="5" :auto-grow="true" @input="updateValue"></v-textarea>',
+                    methods: {
+                        updateValue: function(newValue){this.lastValue = newValue;},
+                        getValue: function() {
+                            if(typeof this.lastValue == 'undefined' || this.lastValue == "") return [];
+                            return this.lastValue.split("\n");
+                        }
+                    }
+                });
+
+                Vue.component('input-typedef', {
+                    props: ['data'],
+                    computed: {
+                        inputTypeComponent: function() {
+                            switch(this.data.type){
+                                case "address": return "input-eth-address";
+                                case "uint256": return "input-eth-uint256";
+                                case "uint32": return "input-eth-uint32";
+                                case "bool": return "input-eth-bool";
+                                case "address[]": return "input-eth-address-array";
+                                case "uint256[]": return "input-eth-uint256-array";
+                                case "uint32[]": return "input-eth-uint32-array";
+                                default: throw Exception("Unsupported type: "+this.data.type);
+                            }
+                        }
+                    },
+                    template: '<component :is="inputTypeComponent" :label="data.name" :defaultValue="data.default" ref="cmp"></component>',
+                    methods: {
+                        getValue: function() {
+                            return this.$refs.cmp.getValue();
+                        }
+                    }
+                });
+
+                Vue.component('input-params-list', {
+                    props: ['params'],
+                    template: '<div><div v-for="item in params"><input-typedef :data="item" ref="inps"></input-typedef></div></div>',
+                    methods: {
+                        getAbiEncodedData: function() {
+                            if(this.params.length == 0) return "0x";
+                            // console.log(this.params);
+                            // console.log(this.$refs.inps);
+                            let types = this.params.map((t)=>t.type);
+                            //console.log(this.$refs.inps[0].getValue());
+                            let values = this.$refs.inps.map((v)=>v.getValue())
+                            console.log('encode', types, values);
+                            return ethers.utils.defaultAbiCoder.encode(types, values);
+                        }
+                    }
+                });
+
+
+                const app = new Vue({
+                    el: "#app",
+                    vuetify: new Vuetify(),
+                    data: () => ({
+                        web3Provider: new ethers.providers.Web3Provider(window.ethereum, "any"),
+                        defaultLockFactory: getUrlParam("factory", settings.lockFactory.address),
+                        lockInit:"",
+                        lockConfigData: settings.lock.configData,
+                        lockInitialBeneficiariesData: settings.lock.initialBeneficiariesData,
+                        dmAddress:"",
+                        dmInit:"",
+                        shmAddress:"",
+                        shmInit:"",
+                        spmAddress:"",
+                        spmInit:"",
+                        dmSettings: settings.modules.deposit,
+                        shmSettings: settings.modules.schedule,
+                        spmSettings: settings.modules.split,
+                        dmSelector: 0,
+                        shmSelector: 0,
+                        spmSelector: 0,
+                    }),
+                    methods: {
+                        connectWallet: async function() {
+                            // Prompt user for account connections
+                            console.log(this.web3Provider);
+                            await this.web3Provider.send("eth_requestAccounts", []);
+                            const signer = this.web3Provider.getSigner();
+                            console.log("Account:", await signer.getAddress());
+                        },
+                        deployLock: async function() {
+                            const signer = this.web3Provider.getSigner();
+                            console.log("Using account:", await signer.getAddress());
+                            let factoryAddress = this.$refs.lockFactoryAddress.getValue();
+                            console.log("Using factoryAddress", factoryAddress);
+
+                            let lockFactory = new ethers.Contract(factoryAddress, lockFactoryAbi, signer);
+                            let tx = await lockFactory.deployLock(
+                                settings.lock.address,
+                                this.lockInit,
+                                this.dmAddress,
+                                this.dmInit,
+                                this.shmAddress,
+                                this.shmInit,
+                                this.spmAddress,
+                                this.spmInit
+                            );
+                            console.log("Tx created", tx);
+                            let receipt = await tx.wait(1);
+                            console.log("Tx mined", tx);
+                            let deployEvent = receipt.events.filter(el=>el.event == "Deploy")[0];
+                            let lockProxyAddress = deployEvent.args.lockProxy;
+                            console.log("Deployed Lock Proxy", lockProxyAddress);
+                        },
+                        applyLock: function(){
+                            let lockParamsEncoded = this.$refs.lockParams.getAbiEncodedData();
+                            let beneficiariesDataEncoded = this.$refs.initialBeneficiariesParams.getAbiEncodedData();
+                            this.lockInit = ethers.utils.defaultAbiCoder.encode(['bytes', 'bytes'], [lockParamsEncoded, beneficiariesDataEncoded]);
+                        },
+                        applyDm: function(){
+                            let selectedParams = this.$refs.dmParams[this.dmSelector];
+                            this.dmAddress = this.dmSettings[this.dmSelector].address;
+                            this.dmInit = selectedParams.getAbiEncodedData();
+                        },
+                        applyShm: function(){
+                            let selectedParams = this.$refs.shmParams[this.shmSelector];
+                            this.shmAddress = this.shmSettings[this.shmSelector].address;
+                            this.shmInit = selectedParams.getAbiEncodedData();
+                        },
+                        applySpm: function(){
+                            let selectedParams = this.$refs.spmParams[this.spmSelector];
+                            this.spmAddress = this.spmSettings[this.spmSelector].address;
+                            this.spmInit = selectedParams.getAbiEncodedData();
+                        },
+                    }
+                });
+
+            }
+            document.addEventListener("DOMContentLoaded", main);
+            function getUrlParam(name, defaultValue=null){
+                let value =  new URL(location.href).searchParams.get(name);
+                return (!!value)?value:defaultValue;
+            }
+        </script>
+    </head>
+    <body>
+        <div id="app">
+            <v-app>
+                <v-main>
+                    <v-container>
+                        <h1>Simple Lock Factory</h1>
+                        <v-card elevation="2">
+                            <v-card-title>Lock Factory</v-card-title>
+                            <v-card-text>
+                                <input-eth-address ref="lockFactoryAddress" label="Address of the Lock Factory" :default-value="defaultLockFactory"></input-eth-address>
+                                <v-textarea
+                                    ref="lockInit"
+                                    v-model="lockInit"
+                                    label="Lock initializer data"
+                                    rows="3"
+                                    readonly
+                                ></v-textarea>
+                                <v-text-field
+                                    ref="dmAddress"
+                                    v-model="dmAddress"
+                                    label="Address of the Deposit Manager Implementation"
+                                    readonly
+                                ></v-text-field>
+                                <v-textarea
+                                    ref="dmInit"
+                                    v-model="dmInit"
+                                    label="Deposit Manager initializer data"
+                                    rows="2"
+                                    readonly
+                                ></v-textarea>
+                                <v-text-field
+                                    ref="shmAddress"
+                                    v-model="shmAddress"
+                                    label="Address of the Schedule Manager Implementation"
+                                    readonly
+                                ></v-text-field>
+                                <v-textarea
+                                    ref="shmInit"
+                                    v-model="shmInit"
+                                    label="Schedule Manager initializer data"
+                                    rows="2"
+                                    readonly
+                                ></v-textarea>
+                                <v-text-field
+                                    ref="spmAddress"
+                                    v-model="spmAddress"
+                                    label="Address of the Split Manager Implementation"
+                                    readonly
+                                ></v-text-field>
+                                <v-textarea
+                                    ref="spmInit"
+                                    v-model="spmInit"
+                                    label="Split Manager initializer data"
+                                    rows="2"
+                                    readonly
+                                ></v-textarea>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-btn @click="connectWallet">connectWallet</v-btn>
+                                <v-btn @click="deployLock">Deploy Lock</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                        <v-card elevation="2">
+                            <v-card-title>Lock</v-card-title>
+                            <v-card-text>
+                                <input-params-list :params="lockConfigData" ref="lockParams"></input-params-list>
+                                <input-params-list :params="lockInitialBeneficiariesData" ref="initialBeneficiariesParams"></input-params-list>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-btn @click="applyLock">Apply</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                        <v-card elevation="2">
+                            <v-card-title>DepositManager</v-card-title>
+                            <v-card-text>
+                                <v-radio-group v-model="dmSelector"><ul>
+                                    <li v-for="(instance, index) in dmSettings">
+                                        <v-radio :value="index" :label="instance.name + ' [' + instance.address + ']'"></v-radio>
+                                        <input-params-list :params="instance.initData" ref="dmParams"></input-params-list>
+                                    </li>
+                                </ul></v-radio-group>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-btn @click="applyDm">Apply</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                        <v-card elevation="2">
+                            <v-card-title>ScheduleManager</v-card-title>
+                            <v-card-text>
+                                <v-radio-group v-model="shmSelector"><ul>
+                                    <li v-for="(instance, index) in shmSettings">
+                                        <v-radio :value="index" :label="instance.name + ' [' + instance.address + ']'"></v-radio>
+                                        <input-params-list :params="instance.initData" ref="shmParams"></input-params-list>
+                                    </li>
+                                </ul></v-radio-group>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-btn @click="applyShm">Apply</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                        <v-card elevation="2">
+                            <v-card-title>SplitManager</v-card-title>
+                            <v-card-text>
+                                <v-radio-group v-model="spmSelector"><ul>
+                                    <li v-for="(instance, index) in spmSettings">
+                                        <v-radio :value="index" :label="instance.name + ' [' + instance.address + ']'"></v-radio>
+                                        <input-params-list :params="instance.initData"  ref="spmParams"></input-params-list>
+                                    </li>
+                                </ul></v-radio-group>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-btn @click="applySpm">Apply</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-container>
+                </v-main>
+            </v-app>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,193 @@
+{
+    "lockFactory": {
+        "address": "0x4009236dA21C3018D3b7fc4766CA71796046B371"
+    },
+    "lock": {
+        "address": "0xA11345aA48D1AfC1303Af1A1A97a34029D614334",
+        "configData": [
+            {
+                "name": "scheduleManagerAddress",
+                "type": "address",
+                "default": "0x0000000000000000000000000000000000000000"
+            },
+            {
+                "name": "depositManagerAddress",
+                "type": "address",
+                "default": "0x0000000000000000000000000000000000000000"
+            },
+            {
+                "name": "splitManagerAddress",
+                "type": "address",
+                "default": "0x0000000000000000000000000000000000000000"
+            },
+            {
+                "name": "tokenAddress",
+                "type": "address"
+            },
+            {
+                "name": "governanceAddress",
+                "type": "address"
+            },
+            {
+                "name": "canAddBeneficiaries",
+                "type": "bool"
+            },
+            {
+                "name": "canRemoveBeneficiaries",
+                "type": "bool"
+            },
+            {
+                "name": "canTransfer",
+                "type": "bool"
+            },
+            {
+                "name": "initialLockedAmount",
+                "type": "uint256"
+            }
+        ],
+        "initialBeneficiariesData": [
+            {
+                "name": "beneficiaries",
+                "type": "address[]"
+            },
+            {
+                "name": "amounts",
+                "type": "uint256[]"
+            }
+        ]
+    },
+    "modules": {
+        "schedule": [
+            {
+                "name": "LinearUnlockSchedule",
+                "address": "0x2b96BA47b09221e6D3A5BC5CE2c7B28ACd26B9Bb",
+                "initData": [
+                    {
+                        "name": "lockStartTimestamp",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "lockEndTimestamp",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "cliffTimestamp",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "governanceAddress",
+                        "type": "address"
+                    }
+                ]
+            },
+            {
+                "name": "IntervalUnlockSchedule",
+                "address": "0x9677B6A482e4Cd831c884679AD24a462B90B20cb",
+                "initData": [
+                    {
+                        "name": "keyPoints",
+                        "type": "uint256[]"
+                    },
+                    {
+                        "name": "amounts",
+                        "type": "uint256[]"
+                    },
+                    {
+                        "name": "governanceAddress",
+                        "type": "address"
+                    }
+                ]
+            },
+            {
+                "name": "DateUnlockSchedule",
+                "address": "0xF7B1e8bdcFe666E4424dDdAB0bc6ddcCdC26d344",
+                "initData": [
+                    {
+                        "name": "normalizedAmounts",
+                        "type": "uint256[]"
+                    },
+                    {
+                        "name": "unlockTimestamps",
+                        "type": "uint256[]"
+                    },
+                    {
+                        "name": "governanceAddress",
+                        "type": "address"
+                    }
+                ]
+
+            },
+            {
+                "name": "EqualUnlockSchedule",
+                "address": "0xdE285797Fe36FFfA2602429964db0DF5Dcd523bF",
+                "initData": [
+                    {
+                        "name": "lockStartTimestamp",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "lockLengthSeconds",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "lockPeriodSeconds",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "governanceAddress",
+                        "type": "address"
+                    }
+                ]
+            }
+        ],
+        "deposit": [
+            {
+                "name": "DepositManager",
+                "address": "0xe9a2E2c1a62e584316D05d5939A7672b3eae57f1",
+                "initData": [
+                    {
+                        "name": "governanceAddress",
+                        "type": "address"
+                    }
+                ]
+            }
+        ],
+        "split": [
+            {
+                "name": "SplitManager",
+                "address": "0xBC0C9c1aa3F1347471A3879C4A823970EACC7df4",
+                "initData": [
+                    {
+                        "name": "initialLockedPart",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "governanceAddress",
+                        "type": "address"
+                    }
+                ]
+            },
+            {
+                "name": "SplitManagerTrue",
+                "address": "0xBA77EC8132312D643DbeA6625cBCa2984642038B",
+                "initData": [
+                    {
+                        "name": "governanceAddress",
+                        "type": "address"
+                    }
+                ]
+            },
+            {
+                "name": "SplitManagerFalse",
+                "address": "0x667c3e0d7903D4C1958b16Af6F99F3c5b6eB32A5",
+                "initData": [
+                    {
+                        "name": "governanceAddress",
+                        "type": "address"
+                    }                    
+                ]
+            }
+        ]
+
+    }
+}
